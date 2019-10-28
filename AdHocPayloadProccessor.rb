@@ -277,33 +277,36 @@ end
 HERE
 
   def buildUI(callbacks)
-    BHorizSeparator.new self, 0, 14, 1024
-    BLabel.new self, 230, 2, 300, 0, 'Define Payload Processor', :center
-    BLabel.new self, 790, 2, 50, 0, 'Test Processor', :center
-    BVertSeparator.new self, 702, 20, 700
-    BLabel.new self,2, 22, 0,0,  'Define the body of the ruby function userProcessPayload below.  The value this function yields will be provided to intruder.'
-    BLabel.new self,2, 41, 0,0,  'You may define additional functions or require external files as well.'
-    @txtArea = BTextEditor.new( self, callbacks, 2, 53,700,600)
+    BLabel.new self, 2, 2, 300, 0, 'Define Payload Processor:'
+    BLabel.new self, 705, 2, 50, 0, 'Test Processor:'
+    BHorizSeparator.new self, 0, 24, 1024
+    BVertSeparator.new self, 702, 24, 700
+    BLabel.new self,2, 26, 0,0,  'Define the body of the ruby function userProcessPayload below.'
+    BLabel.new self, 2,50,0,0, 'The value this function yields will be provided to intruder.'
+    BLabel.new self,2, 74, 0,0,  'You may define additional functions or require external files as well.'
+    BLabel.new self, 705,26,290, 0, "Test the current process at the left."
+    BLabel.new self, 705,50,290 ,0, "Current Payload Test Value:"
+
+    @txtArea = BTextEditor.new( self, callbacks, 2, 100,700,400)
     @txtArea.setText(SAMPLEBODY)
-    BLabel.new self, 2,655, 0,0, 'Name for payload processor:'
-    @txtName = BTextField.new(self, 160, 655, 350, 12, "NewPayloadProcessor#{rand(5000).to_s}")
-    BButton.new( self, 535, 655, 0,0, 'Create Payload Processor') { |evt| createOnClick }
-    BHorizSeparator.new self, 0,685, 700
-    @cmbProcs = BComboBox.new(self, 2, 690, 350, 0) { |evt| onCmbChange }
+    BLabel.new self, 2,502, 0,0, 'Name for payload processor:'
+    @txtName = BTextField.new(self, 350, 502, 350, 12, "NewPayloadProcessor#{rand(5000).to_s}")
+    BButton.new( self, 2, 528, 0,0, 'Create Payload Processor') { |evt| createOnClick }
+    BHorizSeparator.new self, 0,558, 700
+    @cmbProcs = BComboBox.new(self, 2, 560, 350, 0) { |evt| onCmbChange }
     @cmbChanges = true
     updateRemoveList
-    BButton.new(self, 362, 690,0,0, 'Remove Processor') {|evt| removeOnClick }
-    BButton.new(self,535,690,0,0, 'Restore Template') {|evt| templateOnClick }
-    BButton.new(self, 2, 715, 0, 0, 'Save Extension State') {|evt| saveOnClick }
-    BLabel.new self, 705,22,290, 0, "Test the current process at the left."
-    BLabel.new self, 705,41,290 ,0, "Current Payload Test Value:"
-    @txtCurrentValue = BTextField.new(self, 705,53,290,0, "test")
-    BLabel.new self, 705,85,290 ,0, "Original Payload Test Value:"
-    @txtOriginalValue = BTextField.new(self, 705,97,290,0, "test")
-    BLabel.new self, 705,123,290 ,0, "Base Test Value:"
-    @txtBaseValue = BTextField.new(self, 705,135,290,0, "test")
-    BButton.new(self,705,170,290,0, "Execute") { |evt| executeOnClick }
-    @txtResult = BTextField.new(self, 705, 200,290,0,"")
+    BButton.new(self, 362, 560,0,0, 'Remove Processor') {|evt| removeOnClick }
+    BButton.new(self,362,600,0,0, 'Restore Template') {|evt| templateOnClick }
+    BButton.new(self, 2, 600, 0, 0, 'Save Extension State') {|evt| saveOnClick }
+
+    @txtCurrentValue = BTextField.new(self, 705,74,290,0, "test")
+    BLabel.new self, 705,104,290 ,0, "Original Payload Test Value:"
+    @txtOriginalValue = BTextField.new(self, 705,128,290,0, "test")
+    BLabel.new self, 705,156,290 ,0, "Base Test Value:"
+    @txtBaseValue = BTextField.new(self, 705,180,290,0, "test")
+    BButton.new(self,705,210,290,0, "Execute") { |evt| executeOnClick }
+    @txtResult = BTextField.new(self, 705, 240,290,0,"")
     @txtResult.setEditable(false)
   end
 
