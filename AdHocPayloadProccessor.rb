@@ -133,6 +133,7 @@ class BTextArea < AbstractBurpUIElement
   def initialize(parent, positionX, positionY, width, height)
     @textArea = JTextArea.new
     super parent, JScrollPane.new(@textArea), positionX, positionY, width, height
+    @textArea.setLineWrap(true)
   end
 
   def setText(text)
@@ -141,6 +142,10 @@ class BTextArea < AbstractBurpUIElement
 
   def getText
     @textArea.getText
+  end
+
+  def setEditable(value)
+    @textArea.setEditable(value)
   end
 end
 
@@ -190,8 +195,9 @@ class PayloadProcessorFactory
       originalPayload = @helpers.bytesToString(bOriginalPayload)
       baseValue = @helpers.bytesToString(bBaseValue)
       @helpers.stringToBytes(userProcessPayload(currentPayload, originalPayload, baseValue))
-    rescue => e
+    rescue RuntimeError,ArgumentError => e
       puts e.message + ':' + 'for ' + currentPayload + ' / ' + originalPayload + ' / ' + baseValue
+      "ERROR"
     end
 
     def userProcessPayload(currentPayload, originalPayload, baseValue)
@@ -251,8 +257,6 @@ class PayloadProcessorFactory
   def test(name, body, currentPayload, originalPayload, baseValue)
     anon = klass(name, body).new(name, @callbacks.getHelpers)
     return anon.userProcessPayload(currentPayload, originalPayload, baseValue)
-  rescue => e
-    return "#{e.message}: #{e.backtrace.join'\n'}"
   end
 
   def klass(name, body)
@@ -306,13 +310,14 @@ HERE
     BLabel.new self, 705,156,290 ,0, "Base Test Value:"
     @txtBaseValue = BTextField.new(self, 705,180,290,0, "test")
     BButton.new(self,705,210,290,0, "Execute") { |evt| executeOnClick }
-    @txtResult = BTextField.new(self, 705, 240,290,0,"")
+    BLabel.new self, 705, 240, 290, 0, "Result:"
+    @txtResult = BTextArea.new(self, 705, 266,290,78)
     @txtResult.setEditable(false)
   end
 
   def executeOnClick
     @txtResult.setText(@extension.test(@txtName.getText, @txtArea.getText,  @txtCurrentValue.getText, @txtOriginalValue.getText, @txtBaseValue.getText))
-  rescue RuntimeError,ScriptError => e
+  rescue StandardError,ScriptError,SecurityError => e
     JOptionPane.showMessageDialog(self, e.message, 'Error', 0)
   end
 
