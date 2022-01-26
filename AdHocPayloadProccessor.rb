@@ -7,9 +7,11 @@ java_import 'javax.swing.JPanel'
 java_import 'javax.swing.JScrollPane'
 java_import 'java.awt.Dimension'
 java_import 'java.awt.Rectangle'
+java_import 'java.awt.event.ComponentListener'
 
 class AbstractBrupExtensionUI < JScrollPane
   include ITab
+  include ComponentListener
 
   def initialize(extension)
     @panel = JPanel.new
@@ -17,6 +19,7 @@ class AbstractBrupExtensionUI < JScrollPane
     @panel.setLayout nil
     super(@panel)
     @extension = extension
+    addComponentListener self
   end
 
   def extensionName
@@ -64,6 +67,16 @@ class AbstractBurpUIElement
     w = (width > size.width) ? width : size.width
     h = (height > size.height) ? height : size.height
     @swingElement.setBounds(x + insets.left, y + insets.top, w, h)
+  end
+end
+
+class BPanel < AbstractBurpUIElement
+  include ComponentListener
+
+  def initialize(parent, positionX, positionY, width, height)
+    obj = JPanel.new
+    obj.setLayout nil
+    super parent, obj, positionX,positionY, width, height
   end
 end
 
@@ -203,6 +216,14 @@ class PayloadProcessorFactory
     def userProcessPayload(currentPayload, originalPayload, baseValue)
       "" #emtpy string
     end
+
+    def method_missing(symbol, *args, &blk)
+      if @helpers.respond_to? symbol
+        @helpers.send symbol, *args, &blk
+      else
+        raise NoMethodError.new("Method `#{m}` doesn't exist.")
+      end
+    end
   end
 
   def initialize(name)
@@ -274,6 +295,9 @@ class ExtensionUI < AbstractBrupExtensionUI
 #(string) originalPayload, the value of the original payload prior to
 #     processing by any already-applied processing rules.
 #(string) baseValue the base value of the payload position
+# You can also use the string related extension helpers functions 
+# urlEncode, urlDecode, base64Encode, base64Encode, stringToBytes, and 
+# and bytesToString, directly without additional requires/imports.
 
 def userProcessPayload(currentPayload, originalPayload, baseValue)
   "Sample Payload"
@@ -281,38 +305,60 @@ end
 HERE
 
   def buildUI(callbacks)
-    BLabel.new self, 2, 2, 300, 0, 'Define Payload Processor:'
-    BLabel.new self, 705, 2, 50, 0, 'Test Processor:'
-    BHorizSeparator.new self, 0, 24, 1024
-    BVertSeparator.new self, 702, 24, 700
-    BLabel.new self,2, 26, 0,0,  'Define the body of the ruby function userProcessPayload below.'
-    BLabel.new self, 2,50,0,0, 'The value this function yields will be provided to intruder.'
-    BLabel.new self,2, 74, 0,0,  'You may define additional functions or require external files as well.'
-    BLabel.new self, 705,26,290, 0, "Test the current process at the left."
-    BLabel.new self, 705,50,290 ,0, "Current Payload Test Value:"
-
+    @c1 = {}; @c2 = {};
+    @c1[:lb1] = BLabel.new self, 2, 2, 300, 0, 'Define Payload Processor:'
+    @c2[:lb1] = BLabel.new self, 705, 2, 50, 0, 'Test Processor:'
+    @c1[:lb2] = BLabel.new self,2, 26, 0,0,  'Define the body of the ruby function userProcessPayload below.'
+    @c1[:lb3] = BLabel.new self, 2,50,0,0, 'The value this function yields will be provided to intruder.'
+    @c1[:lb4] = BLabel.new self,2, 74, 0,0,  'You may define additional functions or require external files as well.'
+    @c2[:lb2] = BLabel.new self, 705,26,290, 0, "Test the current processor at the left."
+    @CtrlPanel = BPanel.new(self, 0,502, 714, 220)
     @txtArea = BTextEditor.new( self, callbacks, 2, 100,700,400)
     @txtArea.setText(SAMPLEBODY)
-    BLabel.new self, 2,502, 0,0, 'Name for payload processor:'
-    @txtName = BTextField.new(self, 350, 502, 350, 12, "NewPayloadProcessor#{rand(5000).to_s}")
-    BButton.new( self, 2, 528, 0,0, 'Create Payload Processor') { |evt| createOnClick }
-    BHorizSeparator.new self, 0,558, 700
-    @cmbProcs = BComboBox.new(self, 2, 560, 350, 0) { |evt| onCmbChange }
+    @c1[:txtArea] = @txtArea
+    BLabel.new @CtrlPanel, 2,0, 0,0, 'Name for payload processor:'
+    @txtName = BTextField.new(@CtrlPanel, 362, 0, 350, 12, "NewPayloadProcessor#{rand(5000).to_s}")
+    BButton.new( @CtrlPanel, 2, 28, 350,0, 'Create Payload Processor') { |evt| createOnClick }
+    @cmbProcs = BComboBox.new(@CtrlPanel, 2, 58, 350, 0) { |evt| onCmbChange }
     @cmbChanges = true
     updateRemoveList
-    BButton.new(self, 362, 560,0,0, 'Remove Processor') {|evt| removeOnClick }
-    BButton.new(self,362,600,0,0, 'Restore Template') {|evt| templateOnClick }
-    BButton.new(self, 2, 600, 0, 0, 'Save Extension State') {|evt| saveOnClick }
+    BButton.new(@CtrlPanel, 362, 58,350,0, 'Remove Processor') {|evt| removeOnClick }
+    BButton.new(@CtrlPanel,362,98,350,0, 'Restore Template') {|evt| templateOnClick }
+    BButton.new(@CtrlPanel, 2, 98, 350, 0, 'Save Extension State') {|evt| saveOnClick }
 
+    @c2[:lb3] = BLabel.new self, 705,50,290 ,0, "Current Payload Test Value:"
     @txtCurrentValue = BTextField.new(self, 705,74,290,0, "test")
-    BLabel.new self, 705,104,290 ,0, "Original Payload Test Value:"
+    @c2[:txt1] = @txtCurrentValue
+    @c2[:lb4] = BLabel.new self, 705,104,290 ,0, "Original Payload Test Value:"
     @txtOriginalValue = BTextField.new(self, 705,128,290,0, "test")
-    BLabel.new self, 705,156,290 ,0, "Base Test Value:"
+    @c2[:txt2] = @txtOriginalValue
+    @c2[:lb4] = BLabel.new self, 705,156,290 ,0, "Base Test Value:"
     @txtBaseValue = BTextField.new(self, 705,180,290,0, "test")
-    BButton.new(self,705,210,290,0, "Execute") { |evt| executeOnClick }
-    BLabel.new self, 705, 240, 290, 0, "Result:"
+    @c2[:txt3] = @txtBaseValue
+    @c2[:btn1] = BButton.new(self,705,210,290,0, "Execute") { |evt| executeOnClick }
+    @c2[:lb5] = BLabel.new self, 705, 240, 290, 0, "Result:"
     @txtResult = BTextArea.new(self, 705, 266,290,78)
     @txtResult.setEditable(false)
+    @c2[:txt4] = @txtResult
+    componentResized nil
+  end
+
+  def componentResized(evt)
+    bounds = self.getBounds
+    w = bounds.getWidth - 298
+    x = bounds.getWidth - 292
+    if bounds.getWidth > 1023
+      @c1.each_value { |widget| rect = widget.getBounds; h = rect.getHeight; rect.setSize(w,h); widget.setBounds(rect) }
+      @c2.each_value { |widget| rect = widget.getBounds; y = rect.getY; rect.setLocation(x,y); widget.setBounds(rect) }
+    end
+    h = bounds.getHeight
+    if h > 619
+      rect = @txtArea.getBounds; w = rect.getWidth; rect.setSize(w,h - 226); @txtArea.setBounds(rect)
+      h = @txtArea.getBounds().getHeight() + 102
+      rect = @CtrlPanel.getBounds
+      rect.setLocation(0,h)
+      @CtrlPanel.setBounds rect
+    end
   end
 
   def executeOnClick
