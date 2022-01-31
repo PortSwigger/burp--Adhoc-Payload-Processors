@@ -1,0 +1,13 @@
+Uuid: ab878129f0de4649b7952b0cfadc9f66
+ExtensionType: 3
+Name: Adhoc Payload Processors
+RepoName: adhoc-payload-processors
+ScreenVersion: 1.1
+SerialVersion: 6
+MinPlatformVersion: 0
+ProOnly: False
+Author: Geoff Walton
+ShortDescription: Generate payload processors on the fly - without having to create individual extensions.
+EntryPoint: AdHocPayloadProccessor.rb
+BuildCommand: 
+SupportedProducts: Pro, Community
